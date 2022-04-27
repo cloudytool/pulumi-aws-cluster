@@ -1,0 +1,37 @@
+encryptionsalt: v1:wUxgiwMWJko=:v1:F2fhIrmQIzxxlH7j:sa8sNszrg8kVS9YxWkTOeNX65aK1jg==
+config:
+  cluster:workerTokenPath: /tmp/swarm/worker_token
+  aws:profile: default
+  aws:region: us-east-1
+  s3:exchangeBucket: aws-example-exchange-bucket
+  s3:accessKeyId: S3_ACCESS_KEY_ID
+  s3:secretAccessKey: S3_SECRET_ACCESS_KEY
+
+  # https://cloud-images.ubuntu.com/locator/ec2/
+  ec2:projectName: aws-example
+  ec2:masters: 1
+  ec2:slaves: 1
+  ec2:default/ami: ami-0d777ad7d8b566f8c # ubuntu 20.04 x86
+  ec2:default/machineType: t2.medium
+  ec2:default/zone: us-east-1c
+  ec2:default/rootVolumeSize: 40
+  ec2:default/ebsVolumeSize: 70
+  ec2:default/ebsDeviseName: /dev/sdb
+
+  app:domainName: example.com
+  db:allocatedStorage: 30
+  db:maxAllocatedStorage: 100
+  db:engine: postgres
+  db:engineVersion: 12.4
+  db:engineGroupName: default.postgres12
+  db:instanceClass: db.t3.medium
+  db:user: dbuser
+  db:pass: dbpass
+  db:databaseName: dbname
+  db:storageType: gp2
+  db:backupRetentionPeriod: 3
+  db:backupWindow: 03:00-04:00
+  db:deleteAutomatedBackups: false
+  db:deletionProtection: false
+  db:finalSnapshotIdentifier: aws-example-db-final-snapshot
+  db:skipFinalSnapshot: true
