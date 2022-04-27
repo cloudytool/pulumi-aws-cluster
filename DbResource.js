@@ -38,7 +38,7 @@ class DbResource extends pulumi.ComponentResource {
         password,
 
         allocatedStorage,
-        // autos storage scale
+        // auto storage scale
         maxAllocatedStorage,
 
         engine,
