@@ -8,6 +8,7 @@ const NodeResource = require('./NodeResource');
 const DnsResource = require('./DnsResource');
 const IngressResource = require('./IngressResource');
 const DbResource = require('./DbResource');
+const BucketResource = require('./BucketResource');
 
 const clusterConfig = new pulumi.Config('cluster');
 const s3Config = new pulumi.Config('s3');
@@ -32,6 +33,10 @@ const bootstrapScript = fs.readFileSync('src/bootstrap.sh');
 const masterBootstrapScript = fs.readFileSync('src/master_bootstrap.sh');
 const slaveBootstrapScript = fs.readFileSync('src/slave_bootstrap.sh');
 const cloudScript = fs.readFileSync('src/cloud_cli.sh');
+
+const bucketResource = new BucketResource(
+  s3Config.require('exchangeBucket'),
+);
 
 const networkResource = new NetworkResource(
   'virtual-network',
@@ -103,17 +108,19 @@ const dbResource = new DbResource('rds-appdb', { vpcSecurityGroupIds });
 
 const state = {};
 
-state.ingress = ingressResource;
-state.slaves = slaveResources;
-state.masters = masterResources;
-state.workerTokenObject = workerTokenObject.result;
-// state.network = networkResource;
-state.db = dbResource;
-state.dns = dnsResource;
+state['1_bucket'] = bucketResource;
+state['1_workerTokenObject'] = workerTokenObject.result;
 
-state.with_provision = {
+state['2_dns'] = dnsResource;
+state['2_ingress'] = ingressResource;
+
+state['3_masters'] = masterResources;
+state['3_slaves'] = slaveResources;
+state['3_provision'] = {
   masters: masterResources.map((node) => node.instance.id),
   slaves: slaveResources.map((node) => node.instance.id),
 };
+
+state['4_db'] = dbResource;
 
 exports.state = state;
