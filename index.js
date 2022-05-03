@@ -14,7 +14,7 @@ const clusterConfig = new pulumi.Config('cluster');
 const s3Config = new pulumi.Config('s3');
 const ec2Config = new pulumi.Config('ec2');
 
-const genEnvs = (workerToken, meta = {}) => {
+const genEnvs = (workerToken, bucketName, meta = {}) => {
   pulumi.log.info(`[CLUSTER] Worker token object name: ${workerToken}`);
 
   const { MASTER_IP } = meta;
@@ -23,7 +23,7 @@ const genEnvs = (workerToken, meta = {}) => {
     export WORKER_TOKEN_OBJECT=${workerToken}
     export WORKER_TOKEN_PATH=${clusterConfig.require('workerTokenPath')}
     export MASTER_HOST_IP=${MASTER_IP}
-    export S3_BUCKET=${s3Config.require('exchangeBucket')}
+    export S3_BUCKET=${bucketName}
     export AWS_ACCESS_KEY_ID=${s3Config.require('accessKeyId')}
     export AWS_SECRET_ACCESS_KEY=${s3Config.require('secretAccessKey')}
   `;
@@ -35,7 +35,7 @@ const slaveBootstrapScript = fs.readFileSync('src/slave_bootstrap.sh');
 const cloudScript = fs.readFileSync('src/cloud_cli.sh');
 
 const bucketResource = new BucketResource(
-  s3Config.require('exchangeBucket'),
+  ec2Config.require('projectName'),
 );
 
 const networkResource = new NetworkResource(
@@ -48,10 +48,11 @@ const workerTokenObject = new random.RandomUuid('worker-exchange-objectname', {}
 const genConfig = (key, nodeBootstrapScript, meta = {}) => ({
   startupScripts: pulumi.all([
     workerTokenObject.result,
+    bucketResource.bucket.name,
     pulumi.output(meta),
-  ]).apply(([token, meta]) => [
+  ]).apply(([token, bucketName, meta]) => [
     bootstrapScript,
-    genEnvs(token, meta),
+    genEnvs(token, bucketName, meta),
     cloudScript,
     nodeBootstrapScript,
   ]),
