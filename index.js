@@ -10,6 +10,7 @@ const IngressResource = require('./IngressResource');
 const DbResource = require('./DbResource');
 const BucketResource = require('./BucketResource');
 
+const awsConfig = new pulumi.Config('aws');
 const clusterConfig = new pulumi.Config('cluster');
 const s3Config = new pulumi.Config('s3');
 const ec2Config = new pulumi.Config('ec2');
@@ -107,10 +108,7 @@ const dnsResource = new DnsResource('dns-records', {
 
 const dbResource = new DbResource('rds-appdb', { vpcSecurityGroupIds });
 
-const buildMssh = (id) => `mssh ubuntu@${id} --region ${ec2Config.require('region')} --profile ${ec2Config.require('profile')}`;
-const masterIds = masterResources.map((node) => node.instance.id);
-const slaveIds = slaveResources.map((node) => node.instance.id);
-
+const buildMssh = (id) => pulumi.interpolate`mssh ubuntu@${id} --region ${awsConfig.require('region')} --profile ${awsConfig.require('profile')}`;
 const state = {};
 
 state.Bucket = bucketResource.bucket.bucketRegionalDomainName;
@@ -119,9 +117,6 @@ state.WorkerTokenObject = workerTokenObject.result;
 state.NameServers = dnsResource.dnsZone.nameServers;
 state.LoadBalancer = ingressResource.applicationLoadBalancer.loadBalancer.dnsName;
 
-// state['3_masters'] = masterResources;
-// state['3_slaves'] = slaveResources;
-
 state.Db = dbResource;
 
 state.mssh = {
@@ -129,12 +124,12 @@ state.mssh = {
   slaves: {},
 };
 
-masterIds.forEach((id) => {
-  state.mssh.masters[id] = buildMssh(id);
+masterResources.forEach((node) => {
+  state.mssh.masters[node.instance.id] = buildMssh(node.instance.id);
 });
 
-slaveIds.forEach((id) => {
-  state.mssh.slaves[id] = buildMssh(id);
+slaveResources.forEach((node) => {
+  state.mssh.slaves[node.instance.id] = buildMssh(node.instance.id);
 });
 
 exports.state = state;
