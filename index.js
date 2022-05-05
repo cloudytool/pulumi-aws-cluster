@@ -45,14 +45,14 @@ const networkResource = new NetworkResource(
 const vpcSecurityGroupIds = pulumi.all([networkResource.id]);
 const workerTokenObject = new random.RandomUuid('worker-exchange-objectname', {});
 
-const genConfig = (key, nodeBootstrapScript, meta = {}) => ({
+const genConfig = (_, nodeBootstrapScript, meta = {}) => ({
   startupScripts: pulumi.all([
     workerTokenObject.result,
-    bucketResource.bucket.name,
+    bucketResource.bucket.bucket,
     pulumi.output(meta),
-  ]).apply(([token, bucketName, meta]) => [
+  ]).apply(([token, bucketName, metaOutput]) => [
     bootstrapScript,
-    genEnvs(token, bucketName, meta),
+    genEnvs(token, bucketName, metaOutput),
     cloudScript,
     nodeBootstrapScript,
   ]),
@@ -107,21 +107,34 @@ const dnsResource = new DnsResource('dns-records', {
 
 const dbResource = new DbResource('rds-appdb', { vpcSecurityGroupIds });
 
+const buildMssh = (id) => `mssh ubuntu@${id} --region ${ec2Config.require('region')} --profile ${ec2Config.require('profile')}`;
+const masterIds = masterResources.map((node) => node.instance.id);
+const slaveIds = slaveResources.map((node) => node.instance.id);
+
 const state = {};
 
-state['1_bucket'] = bucketResource;
-state['1_workerTokenObject'] = workerTokenObject.result;
+state.Bucket = bucketResource.bucket.bucketRegionalDomainName;
+state.WorkerTokenObject = workerTokenObject.result;
 
-state['2_dns'] = dnsResource;
-state['2_ingress'] = ingressResource;
+state.NameServers = dnsResource.dnsZone.nameServers;
+state.LoadBalancer = ingressResource.applicationLoadBalancer.loadBalancer.dnsName;
 
-state['3_masters'] = masterResources;
-state['3_slaves'] = slaveResources;
-state['3_provision'] = {
-  masters: masterResources.map((node) => node.instance.id),
-  slaves: slaveResources.map((node) => node.instance.id),
+// state['3_masters'] = masterResources;
+// state['3_slaves'] = slaveResources;
+
+state.Db = dbResource;
+
+state.mssh = {
+  masters: {},
+  slaves: {},
 };
 
-state['4_db'] = dbResource;
+masterIds.forEach((id) => {
+  state.mssh.masters[id] = buildMssh(id);
+});
+
+slaveIds.forEach((id) => {
+  state.mssh.slaves[id] = buildMssh(id);
+});
 
 exports.state = state;
