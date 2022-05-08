@@ -125,11 +125,13 @@ state.mssh = {
 };
 
 masterResources.forEach((node) => {
-  state.mssh.masters[node.instance.id] = buildMssh(node.instance.id);
+  const id = pulumi.interpolate`${node.instance.id}`;
+  state.mssh.masters[id] = buildMssh(id);
 });
 
 slaveResources.forEach((node) => {
-  state.mssh.slaves[node.instance.id] = buildMssh(node.instance.id);
+  const id = pulumi.interpolate`${node.instance.id}`;
+  state.mssh.slaves[id] = buildMssh(id);
 });
 
 exports.state = state;
