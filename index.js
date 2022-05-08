@@ -119,11 +119,18 @@ state.LoadBalancer = ingressResource.applicationLoadBalancer.loadBalancer.dnsNam
 
 state.Db = dbResource;
 
-state.mssh = pulumi.all([
-  masterResources,
-  slaveResources,
-]).apply(([masterNodes, workerNodes]) => {
-  const res = [masterNodes + workerNodes].reduce((text, node) => [text, buildMssh(node.instance.id)].join('\n'), '');
+const msshCommands = [
+  '\nTo connect to the cluster node, run the following command:\n\n',
+];
 
-  return `To connect to the cluster node, run the following command:\n\n${res}`;
+masterResources.forEach((node) => {
+  msshCommands.push(buildMssh(node.instance.id));
 });
+
+slaveResources.forEach((node) => {
+  msshCommands.push(buildMssh(node.instance.id));
+});
+
+state.mssh = msshCommands.join('\n');
+
+exports.state = state;
