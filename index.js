@@ -109,16 +109,16 @@ const dnsResource = new DnsResource('dns-records', {
 const dbResource = new DbResource('rds-appdb', { vpcSecurityGroupIds });
 
 const buildMssh = (id) => pulumi.interpolate`mssh ubuntu@${id} --region ${awsConfig.require('region')} --profile ${awsConfig.require('profile')}`;
-const state = {};
+const info = {};
 
-state.Bucket = bucketResource.bucket.bucketRegionalDomainName;
-state.WorkerTokenObject = workerTokenObject.result;
+info.Bucket = bucketResource.bucket.bucketRegionalDomainName;
+info.WorkerTokenObject = workerTokenObject.result;
 
-state.NameServers = dnsResource.dnsZone.nameServers;
-state.LoadBalancer = ingressResource.applicationLoadBalancer.loadBalancer.dnsName;
+info.NameServers = dnsResource.dnsZone.nameServers;
+info.LoadBalancer = ingressResource.applicationLoadBalancer.loadBalancer.dnsName;
 
 if (dbResource?.instance) {
-  state.Db = dbResource;
+  info.Db = dbResource;
 }
 
 const msshCommands = [];
@@ -131,6 +131,6 @@ slaveResources.forEach((node) => {
   msshCommands.push(buildMssh(node.instance.id));
 });
 
-state.mssh = pulumi.all(msshCommands);
+info.mssh = pulumi.all(msshCommands);
 
-exports.state = state;
+exports.info = info;

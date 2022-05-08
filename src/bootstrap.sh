@@ -3,7 +3,7 @@
 # Place runner user
 RUNNER_HOME=/home/ubuntu
 RUNNER_USER=ubuntu
-PROJECT_HOME=/zorion
+PROJECT_HOME=/project
 # EBS volume default path
 EBS_PATH=/dev/xvdb
 
