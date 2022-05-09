@@ -65,6 +65,8 @@ if (!s3ExchangeUser.user) {
   throw new Error('No tokens exchange user created');
 }
 
+exports.newUsers = newUsers.map((user) => user.credentials);
+
 const bucketResource = new BucketResource(
   projectName,
 );
@@ -166,7 +168,5 @@ slaveResources.forEach((node) => {
 });
 
 info.mssh = pulumi.all(msshCommands);
-
-info.newUsers = newUsers.map((user) => user.credentials);
 
 exports.info = info;
