@@ -1,0 +1,3 @@
+name: Pulumi AWS cluster
+runtime: nodejs
+description: Pulumi production-ready cluster in AWS includes installation of instances, networking, dns, database and load balancing
