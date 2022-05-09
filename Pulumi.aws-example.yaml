@@ -1,8 +1,8 @@
 encryptionsalt: v1:NXHcHtVQQ4M=:v1:6QZlxzHc1KMxWwiv:gYgSzNAgfFItMtLFZhGSSfsf5S5jPQ==
 config:
-  app:domainName: example.com
+  app:domainName: aws-example-domain.com
   aws:profile: default
-  aws:region: us-east-1
+  aws:region: us-east-2
   cluster:workerTokenPath: /tmp/swarm/worker_token
   db:allocatedStorage: "30"
   db:backupRetentionPeriod: "3"
@@ -12,22 +12,29 @@ config:
   db:deletionProtection: "false"
   db:engine: postgres
   db:engineGroupName: default.postgres12
-  db:engineVersion: "12.4"
+  db:engineVersion: "12.10"
   db:finalSnapshotIdentifier: aws-example-db-final-snapshot
   db:instanceClass: db.t3.medium
   db:maxAllocatedStorage: "100"
-  db:pass: dbpass
+  db:pass: dbpass123
   db:skipFinalSnapshot: "true"
   db:storageType: gp2
   db:user: dbuser
-  ec2:default/ami: ami-040ba2694e25fb180
+  ec2:default/ami: ami-0f2891f9820eeec74
   ec2:default/ebsDeviseName: /dev/sdb
   ec2:default/ebsVolumeSize: "70"
   ec2:default/machineType: t2.medium
   ec2:default/rootVolumeSize: "40"
-  ec2:default/zone: us-east-1c
+  ec2:default/zone: us-east-2a
   ec2:masters: "1"
   ec2:projectName: aws-example
   ec2:slaves: "1"
-  s3:accessKeyId: S3_ACCESS_KEY_ID
-  s3:secretAccessKey: S3_SECRET_ACCESS_KEY
+  iam:users:
+    - s3-exchange:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: AllObjectActions
+            Action: ["s3:*Object"]
+            Effect: Allow
+            Resource: "*"

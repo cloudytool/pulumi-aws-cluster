@@ -42,26 +42,28 @@ class DnsResource extends pulumi.ComponentResource {
       domainName = domainName.slice(0, -1);
     }
 
-    const dnsRecords = pulumi.all(Object.entries(allRecords)).apply((dnsRecs) => dnsRecs.map(([key, data]) => {
-      const records = pulumi.output(data.value).apply((v) => (Array.isArray(v) ? v : [v]));
-      const valueKey = data.isAlias ? 'aliases' : 'records';
+    const dnsRecords = pulumi.all(Object.entries(allRecords)).apply(
+      (dnsRecs) => dnsRecs.map(([key, data]) => {
+        const records = pulumi.output(data.value).apply((v) => (Array.isArray(v) ? v : [v]));
+        const valueKey = data.isAlias ? 'aliases' : 'records';
 
-      const recArgs = {
-        zoneId: dnsZone.zoneId,
-        type: data.type,
-        name: pulumi.output(data.name || '').apply((name) => name),
-        [valueKey]: records,
-        allowOverwrite: true,
-      };
+        const recArgs = {
+          zoneId: dnsZone.zoneId,
+          type: data.type,
+          name: pulumi.output(data.name || '').apply((name) => name),
+          [valueKey]: records,
+          allowOverwrite: true,
+        };
 
-      if (!data.isAlias) {
-        recArgs.ttl = 10;
-      }
+        if (!data.isAlias) {
+          recArgs.ttl = 10;
+        }
 
-      const rec = new aws.route53.Record(key, recArgs);
+        const rec = new aws.route53.Record(key, recArgs);
 
-      return recArgs;
-    }));
+        return [recArgs, rec];
+      }),
+    );
 
     this.dnsZone = dnsZone;
     this.dnsRecords = dnsRecords;
