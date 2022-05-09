@@ -6,10 +6,10 @@ class BucketResource extends pulumi.ComponentResource {
     super('resource:group:BucketResource', name, args, opts);
 
     const {
-      projectName,
       forceDestroy = true,
     } = args;
 
+    const projectName = name;
     const bucket = new aws.s3.Bucket(name, {
       forceDestroy,
       tags: {
