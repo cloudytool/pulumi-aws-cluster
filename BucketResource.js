@@ -5,7 +5,17 @@ class BucketResource extends pulumi.ComponentResource {
   constructor(name, args, opts = {}) {
     super('resource:group:BucketResource', name, args, opts);
 
-    const bucket = new aws.s3.Bucket(name);
+    const {
+      projectName,
+      forceDestroy = true,
+    } = args;
+
+    const bucket = new aws.s3.Bucket(name, {
+      forceDestroy,
+      tags: {
+        type: pulumi.concat(projectName, '-bucket'),
+      },
+    });
 
     function publicReadPolicyForBucket(bucketName) {
       return JSON.stringify({
